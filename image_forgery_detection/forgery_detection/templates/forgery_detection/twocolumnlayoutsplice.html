@@ -1,0 +1,242 @@
+
+
+ <!-- 
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Forensics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .left-column, .right-column {
+            flex: 1;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+        }
+        .image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        .result-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<h2>{{ela_image_url}}</h2>
+    <div class="container">
+        <div class="left-column">
+            <h2>Upload Image</h2>
+            <form action="{% url 'copy_move' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="image" required>
+                <button type="submit">Analyze Image</button>
+            </form>
+        </div>
+        <div class="right-column">
+            {% if result %}
+                <div class="result-container">
+                    <h2>Forgery Detection Result</h2>
+                    <p>Prediction: {{ result }}</p>
+                    <p>Confidence: {{ confidence }}</p>
+                </div>
+                {% if ela_image_url %}
+                    <div class="image-container">
+                        <h2>ELA Image</h2>
+                        
+                        <img src="{% static ela_image_url %}"  alt="ELA Image">
+                    </div>
+                {% endif %}
+            {% elif matched_image_url %}
+                <div class="image-container">
+                    <h2>Matched Signature</h2>
+                    <img src="{%static matched_image_url %}" alt="Matched Signature">
+                </div>
+            {% elif compression_result %}
+                <div class="result-container">
+                    <h2>Compression Result</h2>
+                    <p>{{ compression_result }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Forensics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .left-column {
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .right-column {
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .image-container {
+            margin-bottom: 20px;
+            border: 2px solid #ccc; /* Gray border for image container */
+            border-radius: 5px; /* Rounded corners */
+            padding: 10px; /* Add some padding */
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px; /* Add some spacing between image and buttons */
+        }
+               
+        .matched-container {
+            border: 2px solid #28a745; /* Green border for matched signature */
+        }
+
+        /* Change background color of "Choose File" button */
+        input[type="file"]::-webkit-file-upload-button {
+            background-color: #310e68;
+            background-image: linear-gradient(316deg, #310e68 0%, #5f0f40 74%);
+            border: none; /* Remove border */
+            border-radius: 5px; /* Apply border radius */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            transition: background-color 0.3s ease; /* Smooth transition */
+            color: white;
+        }
+
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background-color: #45a049;
+        }
+
+        button[type="submit"] {
+            margin-top: 10px; /* Add some spacing between "Choose File" and "Analyze Image" */
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #45a049; /* Dark green on hover */
+            transform: scale(1.05); /* Scale effect on hover */
+        }
+
+        /* Style for result text */
+        .result-container h2 {
+            font-weight: bold; /* Make the heading bold */
+        }
+
+        .result-text {
+            font-weight: bold;
+            color: black; /* Green color for result text */
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-column col-md-6 upload-section left-column p-3 mb-2 bg-dark text-white">
+            <h2>Upload Image</h2>
+            <form action="{% url 'splicing' %}" method="post" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <!-- Apply the styles to the input file button -->
+                    <input class="form-control" type="file" name="image" id="imageUpload" required>
+                </div>
+                <div class="image-container" id="uploadedImageContainer" style="display: none;">
+                    <h2>Uploaded Image</h2>
+                    <img src="" id="uploadedImage" alt="Uploaded Image">
+                </div>
+                <button class="btn btn-primary" type="submit">Analyze Image</button>
+            </form>
+        </div>
+        <div class="right-column">
+            {% if result %}
+                <div class="result-container">
+                    <h2>Forgery Detection Result</h2>
+                    <p class="result-text">Prediction: {{ result }}</p>
+                    <p class="result-text">Confidence: {{ confidence }}</p>
+                </div>
+                {% if ela_image_url %}
+                    <div class="image-container">
+                        <h2>ELA Image</h2>
+                        <img src="{% static ela_image_url %}"  alt="ELA Image">
+                    </div>
+                {% endif %}
+            {% elif matched_image_url %}
+                <div class="image-container">
+                    <h2>Matched Signature</h2>
+                    <img src="{%static matched_image_url %}" alt="Matched Signature">
+                </div>
+            {% elif compression_result %}
+                <div class="result-container">
+                    <h2>Compression Result</h2>
+                    <p>{{ compression_result }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+<script>
+    // Function to display uploaded image
+    function displayImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('uploadedImage').setAttribute('src', e.target.result);
+                document.getElementById('uploadedImageContainer').style.display = 'block'; // Display the image container
+            }
+            reader.readAsDataURL(input.files[0]); // Read the uploaded file
+        }
+    }
+
+    // Event listener for file input change
+    document.getElementById('imageUpload').addEventListener('change', function() {
+        displayImage(this);
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+

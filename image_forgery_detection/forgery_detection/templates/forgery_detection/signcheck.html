@@ -1,0 +1,367 @@
+{% comment %} {% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #7a0f0f;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .left-column, .right-column {
+            width: 40%;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            margin: 0 20px;
+        }
+
+        .left-column h2, .right-column h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        input[type="file"] {
+    display: block;
+    margin: 10px auto;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff; /* Keep background white */
+    width: 80%;
+    transition: border-color 0.3s ease;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    background-color: #310e68;
+background-image: linear-gradient(316deg, #310e68 0%, #5f0f40 74%);    border: none; /* Remove border */
+    border-radius: 5px; /* Apply border radius */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+    color : white;
+}
+
+input[type="file"]:focus,
+input[type="file"]:hover {
+    border-color: #666; /* Change border color on focus/hover */
+}
+
+input[type="file"]:hover::-webkit-file-upload-button {
+    background-color: #0056b3; /* Darker shade of blue on hover */
+}
+
+
+
+        button[type="submit"] {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .result-container {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container ">
+        <div class="left-column p-3 mb-2 bg-dark text-white">
+            
+            <h2 style="margin-left: auto;margin-right: auto;">Upload Image 1</h2>
+            <form action="{% url 'signature' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="input-group mb-3 ">
+                    <input type="file" name="image1" class="form-control" id="inputGroupFile01"
+                    onchange="previewImage('inputGroupFile01', 'leftPreview')" style="width: 100%;" required>
+                  </div>
+                  <div class="image-container" id="leftPreview"></div>
+        </div>
+        <div class="right-column  p-3 mb-2 bg-dark text-white">
+            <h2 style="margin-left: auto;margin-right: auto;">Upload Image 2</h2>
+            <div class="input-group mb-3 " >
+                <input type="file" name="image2" class="form-control" id="inputGroupFile02" 
+                onchange="previewImage('inputGroupFile02', 'rightPreview')" style="width: 100%;" required >
+                  </div>
+                  <div class="image-container" id="rightPreview"></div>
+            <button type="submit">Verify Signature</button>
+            </form>
+        </div>
+    </div>
+   
+    {% if result %}
+        <div class="container">
+            <div class="left-column">
+                <div class="result-container">
+                    {% if result == 'Forged' %}
+                        <p style="color: red;">{{ result }}</p>
+                    {% else %}
+                        <p style="color: green;">{{ result }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% if matched_image_url %}
+                <div class="right-column">
+                    <div class="image-container">
+                        <h2>Matched Signature</h2>
+                        <img src="{%static matched_image_url %}" alt="Matched Signature">
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous">
+</script>
+<script>
+    function previewImage(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+
+        while (preview.firstChild) {
+            preview.removeChild(preview.firstChild);
+        }
+
+        const files = input.files;
+
+        if (files.length === 0) {
+            const para = document.createElement('p');
+            para.textContent = 'No file chosen';
+            preview.appendChild(para);
+        } else {
+            const image = document.createElement('img');
+            image.style.maxWidth = '100%';
+            image.style.height = 'auto';
+            image.src = URL.createObjectURL(files[0]);
+            preview.appendChild(image);
+        }
+    }
+</script>
+  </div>
+</body>
+</html> {% endcomment %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature Forgery Detection</title>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #7a0f0f;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .left-column, .right-column {
+            width: 40%;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            margin: 0 20px;
+        }
+
+        .left-column h2, .right-column h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin: 10px auto;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            width: 80%;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="file"]::-webkit-file-upload-button {
+            background-color: #310e68;
+            background-image: linear-gradient(316deg, #310e68 0%, #5f0f40 74%);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            color: white;
+        }
+
+        input[type="file"]:focus,
+        input[type="file"]:hover {
+            border-color: #666;
+        }
+
+        input[type="file"]:hover::-webkit-file-upload-button {
+            background-color: #0056b3;
+        }
+
+        button[type="submit"] {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .result-container {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .header {
+            background-color: #310e68;
+            background-image: linear-gradient(316deg, #310e68 0%, #5f0f40 74%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+    <div class="header">Signature Forgery Detection</div>
+    <div class="container">
+        <div class="left-column p-3 mb-2 bg-dark text-white">
+            <h2 style="margin-left: auto;margin-right: auto;">Upload Image 1</h2>
+            <form action="{% url 'signature' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <input type="file" name="image1" class="form-control" id="inputGroupFile01"
+                    onchange="previewImage('inputGroupFile01', 'leftPreview')" style="width: 100%;" required>
+                </div>
+                <div class="image-container" id="leftPreview"></div>
+        </div>
+        <div class="right-column p-3 mb-2 bg-dark text-white">
+            <h2 style="margin-left: auto;margin-right: auto;">Upload Image 2</h2>
+            <div class="input-group mb-3">
+                <input type="file" name="image2" class="form-control" id="inputGroupFile02" 
+                onchange="previewImage('inputGroupFile02', 'rightPreview')" style="width: 100%;" required>
+            </div>
+            <div class="image-container" id="rightPreview"></div>
+            <button type="submit">Verify Signature</button>
+            </form>
+        </div>
+    </div>
+   
+    {% if result %}
+        <div class="container">
+            <div class="left-column">
+                <div class="result-container">
+                    {% if result == 'Forged' %}
+                        <p style="color: red;">{{ result }}</p>
+                    {% else %}
+                        <p style="color: green;">{{ result }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% if matched_image_url %}
+                <div class="right-column">
+                    <div class="image-container">
+                        <h2>Matched Signature</h2>
+                        <img src="{%static matched_image_url %}" alt="Matched Signature">
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <script>
+        function previewImage(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+
+            while (preview.firstChild) {
+                preview.removeChild(preview.firstChild);
+            }
+
+            const files = input.files;
+
+            if (files.length === 0) {
+                const para = document.createElement('p');
+                para.textContent = 'No file chosen';
+                preview.appendChild(para);
+            } else {
+                const image = document.createElement('img');
+                image.style.maxWidth = '100%';
+                image.style.height = 'auto';
+                image.src = URL.createObjectURL(files[0]);
+                preview.appendChild(image);
+            }
+        }
+    </script>
+</body>
+</html>
